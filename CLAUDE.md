@@ -26,7 +26,7 @@ OpenAI-compatible LLM/VLM server for Intel hardware. NPU-first.
 ## Development preferences
 
 - Keep it simple. One file (`nollama.py`) is fine. Don't split into modules unless it gets unwieldy.
-- PowerShell for install/launch scripts (Windows-native users).
+- PowerShell and Bash for install/launch scripts.
 - Runtime flags over hardcoded config (e.g. `--port`, `--device`).
 - When testing, use small payloads / short prompts. Don't run full model loads unless needed.
 - VLM prompts must be dead simple for small models (3B). One question, one answer, minimal JSON. All logic in Python, not in the prompt.
@@ -48,3 +48,4 @@ OpenAI-compatible LLM/VLM server for Intel hardware. NPU-first.
 - Gemma 3 4B Vision (INT4) on GPU — fast VLM
 - Qwen2.5-VL-3B/7B (INT4/INT8) on GPU — proven for image tasks
 - Qwen3-30B-A3B on GPU — needs >16GB VRAM, falls back to CPU silently on 16GB cards
+ falls back to CPU silently on 16GB cards
