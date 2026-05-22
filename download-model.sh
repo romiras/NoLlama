@@ -138,10 +138,10 @@ else
     echo ""
 
     export PYTHONIOENCODING="utf-8"
-    if ! huggingface-cli download "$HF_ID" --local-dir "$OUTPUT"; then
+    if ! hf download "$HF_ID" --local-dir "$OUTPUT"; then
         echo ""
         echo -e "${RED}ERROR: Download failed.${NC}"
-        echo -e "${YELLOW}  If 401/403: run 'huggingface-cli login' first${NC}"
+        echo -e "${YELLOW}  If 401/403: run './venv/bin/huggingface-cli login' first${NC}"
         exit 1
     fi
 fi

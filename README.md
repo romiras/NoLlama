@@ -26,6 +26,8 @@ compatible APIs — so any client that speaks to either just works.
 ./start.sh
 ```
 
+> **Note on Gated Models:** Some models (like Gemma 3 or Llama) are "gated" on Hugging Face. If you get a 403 error during download, visit the model page on Hugging Face, accept the license, and then run `./venv/bin/huggingface-cli login` to authenticate.
+
 That's it. The install script detects your hardware, lets you pick a model,
 downloads it, and generates a start script. The launcher waits for the
 model to load (with a progress indicator), then opens the built-in

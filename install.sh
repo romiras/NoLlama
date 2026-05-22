@@ -32,10 +32,18 @@ echo ""
 if [[ -d "$VENV_DIR" ]]; then
     echo "[OK] venv already exists"
 else
-    echo "Creating Python venv..."
-    if ! python3 -m venv "$VENV_DIR"; then
-        echo -e "${RED}ERROR: Failed to create venv. Is python3-venv installed?${NC}"
-        exit 1
+    if command -v uv > /dev/null 2>&1; then
+        echo "Creating Python venv using uv..."
+        if ! uv venv "$VENV_DIR"; then
+            echo -e "${RED}ERROR: Failed to create venv with uv.${NC}"
+            exit 1
+        fi
+    else
+        echo "Creating Python venv using standard venv..."
+        if ! python3 -m venv "$VENV_DIR"; then
+            echo -e "${RED}ERROR: Failed to create venv. Is python3-venv installed?${NC}"
+            exit 1
+        fi
     fi
     echo "[OK] venv created"
 fi
@@ -45,10 +53,17 @@ fi
 source "$VENV_DIR/bin/activate"
 
 echo "Installing dependencies..."
-python3 -m pip install --upgrade pip wheel setuptools > /dev/null 2>&1
-if ! python3 -m pip install -r "$SCRIPT_DIR/requirements.txt"; then
-    echo -e "${RED}ERROR: pip install failed${NC}"
-    exit 1
+if command -v uv > /dev/null 2>&1; then
+    if ! uv pip install -r "$SCRIPT_DIR/requirements.txt"; then
+        echo -e "${RED}ERROR: uv pip install failed${NC}"
+        exit 1
+    fi
+else
+    python3 -m pip install --upgrade pip wheel setuptools > /dev/null 2>&1
+    if ! python3 -m pip install -r "$SCRIPT_DIR/requirements.txt"; then
+        echo -e "${RED}ERROR: pip install failed${NC}"
+        exit 1
+    fi
 fi
 echo "[OK] Dependencies installed"
 echo ""
@@ -346,21 +361,22 @@ elif [[ "$HAS_GPU" == "true" ]]; then
     echo -e "${YELLOW}No NPU detected. Selecting a GPU model.${NC}"
     echo ""
     # Merge GPU VLM and LLM for the menu
-    # In Bash we can't easily merge JSON but we can just ask show_model_menu to handle a combined view
-    # For simplicity, let's just show gpu_llm and gpu_vlm sequentially in the menu? 
-    # Or just use jq to merge them.
     REGISTRY_JSON=$(echo "$REGISTRY_JSON" | jq '.gpu_combined = (.gpu_vlm + .gpu_llm)')
     show_model_menu "GPU Model" "gpu_combined" "" "" "false"
-    if install_model "$MODEL_DIR"; then
-        START_ARGS+=("--device" "GPU")
+    if ! install_model "$MODEL_DIR"; then
+        echo -e "${YELLOW}Model installation failed. You can re-run install.sh to try again.${NC}"
+        exit 1
     fi
+    START_ARGS+=("--device" "GPU")
 else
     echo -e "${YELLOW}No NPU or GPU detected. Models will run on CPU (slower).${NC}"
     echo ""
     show_model_menu "CPU Model" "npu" "llm" "" "false"
-    if install_model "$MODEL_DIR"; then
-        START_ARGS+=("--device" "CPU")
+    if ! install_model "$MODEL_DIR"; then
+        echo -e "${YELLOW}Model installation failed. You can re-run install.sh to try again.${NC}"
+        exit 1
     fi
+    START_ARGS+=("--device" "CPU")
 fi
 
 # 5. Generate start.sh
