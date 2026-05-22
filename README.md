@@ -14,13 +14,20 @@ compatible APIs — so any client that speaks to either just works.
 
 ## Quick start
 
+### Windows
 ```powershell
 .\install.ps1
 .\start.ps1
 ```
 
-That's it. `install.ps1` detects your hardware, lets you pick a model,
-downloads it, and generates `start.ps1`. The launcher waits for the
+### Linux
+```bash
+./install.sh
+./start.sh
+```
+
+That's it. The install script detects your hardware, lets you pick a model,
+downloads it, and generates a start script. The launcher waits for the
 model to load (with a progress indicator), then opens the built-in
 chat UI in your browser at http://localhost:8000.
 
