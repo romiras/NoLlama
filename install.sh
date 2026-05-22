@@ -138,7 +138,7 @@ if [[ -d "$MODELS_ROOT" ]]; then
             fi
             
             NPU_OK=false
-            if { [[ "$NAME" =~ int4-cw ]] || [[ "$NAME" =~ cw-ov ]]; } && (( $(echo "$SIZE_GB < 10" | bc -l) )); then
+            if { [[ "$NAME" =~ int4-cw ]] || [[ "$NAME" =~ cw-ov ]] || [[ "$NAME" =~ int4-ov ]]; } && (( $(echo "$SIZE_GB < 10" | bc -l) )); then
                 NPU_OK=true
             fi
             
@@ -326,13 +326,23 @@ START_ARGS=()
 
 if [[ "$HAS_NPU" == "true" ]]; then
     # Step 1: NPU chat model
-    show_model_menu "Step 1: Chat Model (NPU)" "npu" "llm" "true" "false"
-    # NPU_SELECTED_NAME is just for bookkeeping, can be used for filtering Step 2
-    NPU_SELECTED_NAME="$SELECTED_NAME"
-    export NPU_SELECTED_NAME
-    if ! install_model "$MODEL_DIR"; then
-        echo -e "${YELLOW}Model installation failed. You can re-run install.sh to try again.${NC}"
-        exit 1
+    ALLOW_SKIP_STEP1=false
+    if [[ -L "$MODEL_DIR" ]]; then
+        CURRENT_MODEL=$(readlink "$MODEL_DIR")
+        echo -e "Current NPU model: ${GREEN}$(basename "$CURRENT_MODEL")${NC}"
+        ALLOW_SKIP_STEP1=true
+    fi
+
+    show_model_menu "Step 1: Chat Model (NPU)" "npu" "" "true" "$ALLOW_SKIP_STEP1"
+    
+    if [[ -n "${SELECTED_NAME:-}" ]]; then
+        # NPU_SELECTED_NAME is just for bookkeeping, can be used for filtering Step 2
+        NPU_SELECTED_NAME="$SELECTED_NAME"
+        export NPU_SELECTED_NAME
+        if ! install_model "$MODEL_DIR"; then
+            echo -e "${YELLOW}Model installation failed. You can re-run install.sh to try again.${NC}"
+            exit 1
+        fi
     fi
     START_ARGS+=("--device" "NPU")
     echo ""
