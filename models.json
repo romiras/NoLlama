@@ -15,6 +15,13 @@
             "notes": "Smaller, faster. Good balance."
         },
         {
+            "name": "InternVL2 4B (INT4)",
+            "hf_id": "OpenVINO/InternVL2-4B-int4-ov",
+            "source": "pre-exported",
+            "est_size_gb": 3,
+            "notes": "Small VLM, works great for chat on NPU."
+        },
+        {
             "name": "DeepSeek R1 Distill 7B (INT4-CW)",
             "hf_id": "OpenVINO/DeepSeek-R1-Distill-Qwen-7B-int4-cw-ov",
             "source": "pre-exported",

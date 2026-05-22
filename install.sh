@@ -70,7 +70,7 @@ echo ""
 
 # 2. Detect devices
 echo -e "${CYAN}Detecting devices...${NC}"
-DEVICE_INFO=$(python3 -c "
+DEVICE_INFO=$("$VENV_DIR/bin/python3" -c "
 import openvino as ov, json
 try:
     core = ov.Core()
@@ -283,7 +283,7 @@ install_model() {
     
     if [[ "$SELECTED_ACTION" == "local" ]]; then
         echo -e "Linking to: ${GREEN}$SELECTED_PATH${NC}"
-        if [[ -e "$target_dir" ]]; then
+        if [[ -e "$target_dir" ]] || [[ -L "$target_dir" ]]; then
             rm -rf "$target_dir"
         fi
         ln -s "$SELECTED_PATH" "$target_dir"
@@ -291,8 +291,12 @@ install_model() {
         return 0
     fi
 
+    # Determine persistent storage path
+    local repo_name="${SELECTED_HFID##*/}"
+    local persistent_dir="$MODELS_ROOT/$repo_name"
+
     # For pre-exported or convert, use download-model.sh
-    local args=("$SELECTED_HFID" "--output" "$target_dir")
+    local args=("$SELECTED_HFID" "--output" "$persistent_dir")
     if [[ "$SELECTED_ACTION" == "convert" ]]; then
         args+=("--convert" "--weight" "$SELECTED_WEIGHT")
     fi
@@ -304,6 +308,15 @@ install_model() {
         echo -e "${RED}ERROR: Model installation failed.${NC}"
         return 1
     fi
+    
+    # Create symlink from persistent storage to target directory
+    echo -e "Linking to: ${GREEN}$persistent_dir${NC}"
+    if [[ -e "$target_dir" ]] || [[ -L "$target_dir" ]]; then
+        rm -rf "$target_dir"
+    fi
+    ln -s "$persistent_dir" "$target_dir"
+    echo -e "${GREEN}[OK] $SELECTED_NAME${NC}"
+
     return 0
 }
 
