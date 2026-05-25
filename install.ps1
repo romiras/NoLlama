@@ -243,10 +243,22 @@ function Show-ModelMenu {
 # ---------------------------------------------------------------------------
 
 function Test-ModelCacheValid {
+    # A cache is valid only if the main weights .bin file exists AND is
+    # substantial (>100 MB). The previous "file exists" check let partial
+    # downloads sneak through: the XML descriptor + small tokenizer files
+    # complete quickly, but the multi-GB weights file may be 0 bytes or
+    # missing if the download was interrupted. Smallest real model in our
+    # registry (DeepSeek-1.5B INT4) is ~700 MB; tokenizer .bin files top
+    # out around 10 MB. 100 MB cleanly separates the two.
     param([string]$Path)
     if (-not (Test-Path $Path)) { return $false }
-    return (Test-Path (Join-Path $Path "openvino_language_model.bin")) -or
-           (Test-Path (Join-Path $Path "openvino_model.bin"))
+    foreach ($bin in @("openvino_language_model.bin", "openvino_model.bin")) {
+        $file = Join-Path $Path $bin
+        if ((Test-Path $file) -and ((Get-Item $file).Length -gt 100MB)) {
+            return $true
+        }
+    }
+    return $false
 }
 
 function New-ModelJunction {
