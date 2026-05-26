@@ -13,9 +13,13 @@ function Open-Url($url) {
 }
 
 function Test-PortFree($port) {
-    # Cross-platform: System.Net.Sockets.TcpListener works on Windows + Linux pwsh.
+    # Bind to Any (0.0.0.0) to match what nollama.py binds — Flask's
+    # host="0.0.0.0". Loopback-only here is a false-positive trap on
+    # Windows: a process bound to 0.0.0.0 doesn't block a subsequent
+    # 127.0.0.1 bind, so the Loopback test would say "free" while the
+    # real bind later fails.
     try {
-        $l = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Loopback, $port)
+        $l = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Any, $port)
         $l.Start(); $l.Stop()
         return $true
     } catch { return $false }
