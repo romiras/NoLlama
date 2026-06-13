@@ -371,21 +371,23 @@ async function sendMessage() {
 
     // Build user message content
     let userContent;
-    let displayHtml = '';
 
     if (attachedImage) {
         userContent = [];
         if (text) userContent.push({ type: 'text', text: text });
         userContent.push({ type: 'image_url', image_url: { url: attachedImage } });
-        displayHtml = escapeHtml(text);
-        displayHtml += `<img src="${attachedImage}" alt="attached">`;
     } else {
         userContent = text;
-        displayHtml = escapeHtml(text);
     }
 
     // Show user message
-    addMessage('user', displayHtml.replace(/\n/g, '<br>'));
+    const userDiv = addMessage('user', text || '');
+    if (attachedImage) {
+        const img = document.createElement('img');
+        img.src = attachedImage;
+        img.alt = 'attached';
+        userDiv.appendChild(img);
+    }
     chatHistory.push({ role: 'user', content: userContent });
 
     // Clear input
