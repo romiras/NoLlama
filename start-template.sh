@@ -14,12 +14,17 @@ GRAY='\033[0;90m'
 NC='\033[0m' # No Color
 
 SERVER_ARGS=""
+PORT=8000
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --server-args)
             SERVER_ARGS="$2"
+            shift 2
+            ;;
+        --port)
+            PORT="$2"
             shift 2
             ;;
         *)
@@ -29,8 +34,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# If port was passed in server-args, extract it for the URL/health check
+if [[ $SERVER_ARGS =~ --port[[:space:]]+([0-9]+) ]]; then
+    PORT="${BASH_REMATCH[1]}"
+elif [[ -n "$PORT" && "$PORT" != "8000" ]]; then
+    # If port was passed via --port but NOT in server-args, add it
+    SERVER_ARGS="$SERVER_ARGS --port $PORT"
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PORT=8000
 URL="http://localhost:$PORT"
 
 # Activate venv
